@@ -29,7 +29,8 @@ class TaskService {
             // const spawnObj = child_process.spawn(`${type} ${scriptConfig.path}${filename} ${args}`,{
             //     cwd: root
             // });
-            const spawnObj =child_process.spawn('python live_panda.py')
+            console.log(type,scriptConfig.path,filename,args)
+            const spawnObj =child_process.spawn(type,[`${scriptConfig.path}${filename}`,...(args.split(' '))])
             spawnObj.stdout.on('data', chunk => {
                 const msg = chunk.toString();
                 console.log('stdout',msg);
