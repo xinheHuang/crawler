@@ -11,7 +11,7 @@ apis.forEach((request) => {
     }
 
     router[method].call(router, `${baseUrl}${request.url}`,async (ctx,next)=>{
-        await request.handler(ctx,ctx.session.userId)
+        await request.handler(ctx)
     })
 })
 
