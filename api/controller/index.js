@@ -8,8 +8,8 @@ module.exports = Object.values({
         method: 'post',
         url: '/task/start',
         async handler(ctx) {
-            const { taskId, type, filename, args } = ctx.request.body
-            await TaskService.startTask(taskId, type, filename, args)
+            const { taskId,subtaskId, type, fileName, args } = ctx.request.body
+            await TaskService.startTask(taskId,subtaskId, type, fileName, args)
             ctx.body = 'success'
         }
     },
@@ -17,8 +17,8 @@ module.exports = Object.values({
         method: 'post',
         url: '/task/stop',
         async handler(ctx) {
-            const { taskId } = ctx.request.body
-            await TaskService.stopTask(taskId)
+            const { subtaskId } = ctx.request.body
+            await TaskService.stopTask(subtaskId)
             ctx.body = 'success'
         }
     },
