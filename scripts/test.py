@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #  http://36kr.com/
 import requests,re,time,math
 import threading,queue
