@@ -59,7 +59,6 @@ class TaskService {
 
     static async stopTask(subtaskId) {
        const proc= TaskService.process.get(subtaskId);
-       console.log('proc kill ', proc)
        if (proc){
            proc.kill();
        }
