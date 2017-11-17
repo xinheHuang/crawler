@@ -33,8 +33,9 @@ class TaskService {
             const spawnObj =child_process.spawn(type,[`${scriptConfig.path}${filename}`,...(args.split(' '))])
             spawnObj.stdout.on('data', chunk => {
                 console.log('data',chunk.toString())
-                const msg=Message(taskId,subtaskId,Message.type.LOG, chunk.toString(),filename);
-                channel.sendToQueue(queue, new Buffer(msg))
+                chunk.toString().split(/[\r\n]+/).filter((d)=>d).forEach(msg=>{
+                    channel.sendToQueue(queue, new Buffer(Message(taskId,subtaskId,Message.type.LOG, msg,filename)))
+                })
             });
             spawnObj.stderr.on('data', (data) => {
                 console.log('error',data)
