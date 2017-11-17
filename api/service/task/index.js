@@ -43,7 +43,7 @@ class TaskService {
             });
             spawnObj.on('close', code => {
                 console.log('close',code)
-                const msg=Message(taskId,subtaskId,Message.type.DONE, code,filename);
+                const msg=Message(taskId,subtaskId,Message.type.DONE, code,filename);   
                 channel.sendToQueue(queue, new Buffer(msg))
             })
             spawnObj.on('exit', (code) => {
