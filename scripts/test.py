@@ -25,9 +25,11 @@ import time
 
 if __name__ == '__main__':
     try:
-        print(datetime_timestamp('2015-01-01 20:20:00', 's'))
-        print(timestamp_datetime(1420114800))
-        print(timestamp_datetime(1420114800123))
+        print(datetime.now())
+        time.sleep(5)
+        print(datetime.now())
+        time.sleep(5)
+        print(datetime.now())
     except Exception as e:
         print(e.args[0])
 
