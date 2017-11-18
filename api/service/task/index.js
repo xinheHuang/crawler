@@ -34,13 +34,13 @@ class TaskService {
                 shell:true
             })
             spawnObj.stdout.on('data', chunk => {
-                console.log('data',chunk.toString())
+                console.log('data',chunk.toString('utf8'))
                 chunk.toString().split(/[\r\n]+/).filter((d)=>d).forEach(msg=>{
                     channel.sendToQueue(queue, new Buffer(Message(taskId,subtaskId,Message.type.LOG, msg,filename)))
                 })
             });
             spawnObj.stderr.on('data', (data) => {
-                console.log('error',data)
+                console.log('error',data.toString('utf8'))
                 const msg=Message(taskId,subtaskId,Message.type.ERROR, data,filename);
                 channel.sendToQueue(queue, new Buffer(msg))
             });
