@@ -23,25 +23,27 @@ class TaskService {
         }
         return TaskService.channel
     }
-    static async startTask(taskId,subtaskId,type,filename,args) {
+    static async startTask(taskId,subtaskId,type,filename,extraArgs) {
         const channel =await TaskService.getChannel();
         try {
             // const spawnObj = child_process.spawn(`${type} ${scriptConfig.path}${filename} ${args}`,{
             //     cwd: root
             // });
-            console.log(type,scriptConfig.path,filename,args)
-            const spawnObj =child_process.spawn(type,[`${scriptConfig.path}${filename}`,...(args.split(' '))],{
-                shell:true
-            })
+            console.log(type,scriptConfig.path,filename,extraArgs)
+            const args= [`${scriptConfig.path}${filename}`,...(extraArgs.split(' '))]
+            if (type=='python'){
+                args.unshift('-u')
+            }
+            const spawnObj =child_process.spawn(type,args)
             spawnObj.stdout.on('data', chunk => {
                 console.log('data',chunk.toString('utf8'))
-                chunk.toString().split(/[\r\n]+/).filter((d)=>d).forEach(msg=>{
+                chunk.toString('utf8').split(/[\r\n]+/).filter((d)=>d).forEach(msg=>{
                     channel.sendToQueue(queue, new Buffer(Message(taskId,subtaskId,Message.type.LOG, msg,filename)))
                 })
             });
             spawnObj.stderr.on('data', (data) => {
                 console.log('error',data.toString('utf8'))
-                const msg=Message(taskId,subtaskId,Message.type.ERROR, data,filename);
+                const msg=Message(taskId,subtaskId,Message.type.ERROR, data.toString('utf8'),filename);
                 channel.sendToQueue(queue, new Buffer(msg))
             });
             spawnObj.on('exit', (code) => {
