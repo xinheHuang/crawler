@@ -30,7 +30,9 @@ class TaskService {
             //     cwd: root
             // });
             console.log(type,scriptConfig.path,filename,args)
-            const spawnObj =child_process.spawn(type,[`${scriptConfig.path}${filename}`,...(args.split(' '))])
+            const spawnObj =child_process.spawn(type,[`${scriptConfig.path}${filename}`,...(args.split(' '))],{
+                shell:true
+            })
             spawnObj.stdout.on('data', chunk => {
                 console.log('data',chunk.toString())
                 chunk.toString().split(/[\r\n]+/).filter((d)=>d).forEach(msg=>{
