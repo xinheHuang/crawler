@@ -42,11 +42,6 @@ class TaskService {
                 const msg=Message(taskId,subtaskId,Message.type.ERROR, data,filename);
                 channel.sendToQueue(queue, new Buffer(msg))
             });
-            spawnObj.on('close', code => {
-                console.log('close',code)
-                const msg=Message(taskId,subtaskId,Message.type.DONE, code,filename);   
-                channel.sendToQueue(queue, new Buffer(msg))
-            })
             spawnObj.on('exit', (code) => {
                 console.log('exit',code)
                 const msg=Message(taskId,subtaskId,Message.type.DONE, code,filename);
