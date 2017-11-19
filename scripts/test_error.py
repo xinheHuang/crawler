@@ -27,6 +27,7 @@ if __name__ == '__main__':
     try:
         print('error!')
         print(datetime.now())
+        time.sleep(5)
         print('bye error')
         exit(1)
     except Exception as e:

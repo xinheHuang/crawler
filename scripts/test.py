@@ -27,6 +27,7 @@ if __name__ == '__main__':
     try:
         print('hi')
         print(datetime.now())
+        time.sleep(5)
         print('bye')
     except Exception as e:
         print(e.args[0])
