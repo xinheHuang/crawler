@@ -27,12 +27,10 @@ class TaskService {
     static async startTask(taskId,subtaskId,type,filename,extraArgs) {
         const channel =await TaskService.getChannel();
         try {
-            // const spawnObj = child_process.spawn(`${type} ${scriptConfig.path}${filename} ${args}`,{
-            //     cwd: root
-            // });
-            console.log( path.dirname(require.main.filename))
-            console.log(type,scriptConfig.path,filename,extraArgs)
-            const args= [`${scriptConfig.path}${filename}`,...(extraArgs.split(' '))]
+            const basepath=path.dirname(require.main.filename);
+            const filepath=basepath.substr(0,basepath.indexOf('bin'))+'scripts/'+filename;
+            console.log(type,filepath,extraArgs)
+            const args= [filepath,...(extraArgs.split(' '))]
             if (type=='python'){
                 args.unshift('-u')
             }
