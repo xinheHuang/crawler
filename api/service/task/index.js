@@ -34,7 +34,9 @@ class TaskService {
             if (type=='python'){
                 args.unshift('-u')
             }
-            const spawnObj =child_process.spawn(type,args)
+            const spawnObj =child_process.spawn(type,args,{
+                shell:true
+            })
             spawnObj.stdout.on('data', chunk => {
                 console.log('data',chunk.toString('utf8'))
                 chunk.toString('utf8').split(/[\r\n]+/).filter((d)=>d).forEach(msg=>{
