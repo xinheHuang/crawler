@@ -30,7 +30,7 @@ class TaskService {
             // const spawnObj = child_process.spawn(`${type} ${scriptConfig.path}${filename} ${args}`,{
             //     cwd: root
             // });
-            console.log(path.__dirname)
+            console.log( path.dirname(require.main.filename))
             console.log(type,scriptConfig.path,filename,extraArgs)
             const args= [`${scriptConfig.path}${filename}`,...(extraArgs.split(' '))]
             if (type=='python'){
