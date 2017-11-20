@@ -25,9 +25,10 @@ import time
 
 if __name__ == '__main__':
     try:
+    	time.sleep(3)
         print('hi')
         print(datetime.now())
-        time.sleep(5)
+        time.sleep(3)
         print('bye')
     except Exception as e:
         print(e.args[0])
