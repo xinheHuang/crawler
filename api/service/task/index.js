@@ -7,6 +7,7 @@ const child_process = require('child_process')
 const scriptConfig= require ('../../../conf/scriptConfig')
 const mqConfig = require('../../../conf/mqConfig')
 const Message =require ('./Message')
+const path = require ('path')
 //amqp
 const { queue, username, password, host, port } = mqConfig
 const open = require('amqplib')
@@ -29,13 +30,14 @@ class TaskService {
             // const spawnObj = child_process.spawn(`${type} ${scriptConfig.path}${filename} ${args}`,{
             //     cwd: root
             // });
+            console.log(path.__dirname)
             console.log(type,scriptConfig.path,filename,extraArgs)
             const args= [`${scriptConfig.path}${filename}`,...(extraArgs.split(' '))]
             if (type=='python'){
                 args.unshift('-u')
             }
             const spawnObj =child_process.spawn(type,args,{
-                shell:true
+            	shell:true
             })
             spawnObj.stdout.on('data', chunk => {
                 console.log('data',chunk.toString('utf8'))
