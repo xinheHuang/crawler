@@ -188,13 +188,13 @@ def get_category(title,tag):
 
 def exist_news(link):
     [conn,cur] = set_mysql('IFC')
-    num = cur.execute("SELECT * FROM news WHERE link= %s", link)
+    num = cur.execute("SELECT * FROM NEWS WHERE link= %s", link)
     close_mysql(conn, cur)
     return num > 0
 
 def get_CID(name):
     [conn, cur] = set_mysql('IFC')
-    cur.execute("select CID from base_industry where name=%s", (name))
+    cur.execute("select industry_id from INDUSTRY where name=%s", (name))
     results = cur.fetchall()
     close_mysql(conn, cur)
     for r in results:
@@ -203,7 +203,7 @@ def get_CID(name):
 
 def get_industry(CID):
     [conn, cur] = set_mysql('IFC')
-    cur.execute("select name from base_industry where CID=%s", (CID))
+    cur.execute("select name from INDUSTRY where industry_id=%s", (CID))
     results = cur.fetchall()
     close_mysql(conn, cur)
     for r in results:
@@ -214,7 +214,7 @@ def store_news(category,riqi, title, abstract, content, num_read, num_like, num_
     last_ID = 0
     [conn, cur] = set_mysql('IFC')
     if not exist_news(link):
-        cur.execute("INSERT INTO `news`(`riqi`, `title`, `abstract`, `content`, `num_read`, `num_like`, `num_comment`, `source`, `link`, `author`, `tags`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+        cur.execute("INSERT INTO `NEWS`(`riqi`, `title`, `abstract`, `content`, `num_read`, `num_like`, `num_comment`, `source`, `link`, `author`, `tags`) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
             (riqi, title, abstract, content, num_read, num_like, num_comment, source, link, author, tags))
         cur.connection.commit()
         print("saved news " + riqi + " " + title)
@@ -231,9 +231,9 @@ def store_cats(NID,category):
     cats = ""
     for cat in category:
         CID = get_CID(cat)
-        num = cur.execute("SELECT * FROM news_relation WHERE NID= %s and CID=%s", (NID,CID))
+        num = cur.execute("SELECT * FROM NEWS_INDUSTRY_RELATION WHERE news_id= %s and industry_id=%s", (NID,CID))
         if num==0:
-            cur.execute("INSERT INTO `news_relation`(`NID`, `CID`) VALUES (%s,%s)",(NID,CID))
+            cur.execute("INSERT INTO `NEWS_INDUSTRY_RELATION`(`news_id`, `industry_id`) VALUES (%s,%s)",(NID,CID))
             cur.connection.commit()
             cats = cats+" "+cat
     print("saved relation " + cats)
@@ -300,6 +300,8 @@ def batch_task1(db,table):
     myaddr = socket.gethostbyname(myname)
     username = ''
     password = ''
+
+    standard_print("本台服务器的配置参数为",[myname,myaddr])
 
     [conn, cur] = set_mysql(db)
     query = "SELECT username,password FROM %s WHERE host = %%s" % table
@@ -658,3 +660,28 @@ def date_delta(num):
     riqi = datetime.datetime.now() + datetime.timedelta(days=num)  # 往前进num天
     riqi = riqi.strftime('%Y-%m-%d')
     return riqi
+
+def get_indicator_lastest_value(ID_tong):
+    [conn, cur] = set_mysql('IFC')
+    cur.execute("SELECT time,value FROM `indicator_value` WHERE ID_tong = %s ORDER BY time DESC LIMIT 1", (ID_tong))
+    results = cur.fetchall()
+    for r in results:
+        riqi = str(r[0])
+        value = str(r[1])
+    close_mysql(conn, cur)
+    return [riqi, value]
+
+def get_indicator_lastest_rate(ID_tong):
+    conclusion = ""
+    [conn, cur] = set_mysql('IFC')
+    cur.execute("SELECT time,value FROM `indicator_value` WHERE ID_tong = %s ORDER BY time DESC LIMIT 1", (ID_tong))
+    results = cur.fetchall()
+    for r in results:
+        riqi = str(r[0])
+        value = r[1]
+    close_mysql(conn, cur)
+    if(value > 0):
+        conclusion = "增加"+str(value)+"%"
+    else:
+        conclusion = "减少" + str(-value) + "%"
+    return conclusion
