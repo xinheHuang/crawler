@@ -19,6 +19,9 @@ import jieba.posseg as pseg
 
 requests_interval = 1
 
+"""
+用途: 用于建立数据库连接
+"""
 def set_mysql(db):
     error_num = 0
     while error_num < 10:
@@ -32,7 +35,9 @@ def set_mysql(db):
             pass
     return [conn,cur]
 
-
+"""
+用途: 用于关闭数据库连接
+"""
 def close_mysql(conn, cur):
     error_num = 0
     while error_num < 10:
@@ -58,6 +63,9 @@ def set_mysql2(db):
             pass
     return [conn, cur]
 
+"""
+用途: 让模拟浏览器一小步一小步向下滚动，以加载出想要抓取的元素
+"""
 def browser_scroll_down_step(browser):
     browser.execute_script("""
         (function () {
@@ -80,12 +88,18 @@ def browser_scroll_down_step(browser):
         })();
       """)
 
+"""
+用途: 模拟生成密码字符串，用来批量注册账户
+"""
 def get_random_password():
     password_length = random.randint(8,15)
     password = random.sample('zyxwvutsrqponmlkjihgfedcba0123456789.+-', password_length)
     password = "".join(password)
     return password
 
+"""
+用途: 提取可用ip资源
+"""
 def get_ip_proxy(request_session,headers):
     [conn,cur] = set_mysql("platform")
     ip = ""
@@ -110,6 +124,9 @@ def get_ip_proxy(request_session,headers):
     close_mysql(conn, cur)
     return str(ip)+":"+str(port)
 
+"""
+用途: 提取ip对应的物理地址以及运营商类型
+"""
 def get_ip_address(ip_proxy):
     try:
         browser = webdriver.PhantomJS(service_args=['--ignore-ssl-errors=true'])
@@ -128,6 +145,9 @@ def get_ip_address(ip_proxy):
         print("无法获取ip所在地")
     return {'ip_address': ip_address, 'ip_ISP': ip_ISP}
 
+"""
+用途: ip提取不稳定，这时候需要用wash_proxy函数，保证每次都能提取到ip
+"""
 def wash_proxy():
     user_agent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
     headers = {'User-Agent': user_agent}
@@ -146,6 +166,9 @@ def wash_proxy():
     print("本次使用代理: " + proxy)
     return proxies
 
+"""
+用途: 对文本进行分词处理
+"""
 def fenci(text):
     wg = jieba.cut(text, cut_all=False)
     wd = {}
@@ -162,6 +185,9 @@ def fenci(text):
             answer.append(w)
     return answer
 
+"""
+用途: 去除字符串中的全部空格
+"""
 def remove_space(str):
     str = str.replace('/n', '')
     pattern = re.compile('\s')
@@ -170,6 +196,9 @@ def remove_space(str):
     str = re.sub(pattern, '', str)
     return str
 
+"""
+用途: 新闻资讯模块，为新闻打标签
+"""
 def get_category(title,tag):
     category = []
     titles = fenci(title)
@@ -186,12 +215,18 @@ def get_category(title,tag):
     close_mysql(conn, cur)
     return {'category': category,'title':title}
 
+"""
+用途: 判断新闻条目是否已经存在
+"""
 def exist_news(link):
     [conn,cur] = set_mysql('IFC')
     num = cur.execute("SELECT * FROM NEWS WHERE link= %s", link)
     close_mysql(conn, cur)
     return num > 0
 
+"""
+用途: 获取行业名称对应的industry_id
+"""
 def get_CID(name):
     [conn, cur] = set_mysql('IFC')
     cur.execute("select industry_id from INDUSTRY where name=%s", (name))
@@ -201,6 +236,9 @@ def get_CID(name):
         CID = r[0]
     return CID
 
+"""
+用途: 获取industry_id对应的行业名称
+"""
 def get_industry(CID):
     [conn, cur] = set_mysql('IFC')
     cur.execute("select name from INDUSTRY where industry_id=%s", (CID))
@@ -210,6 +248,9 @@ def get_industry(CID):
         name = r[0]
     return name
 
+"""
+用途: 存储新闻条目
+"""
 def store_news(category,riqi, title, abstract, content, num_read, num_like, num_comment, source, link, author, tags):
     last_ID = 0
     [conn, cur] = set_mysql('IFC')
@@ -226,6 +267,9 @@ def store_news(category,riqi, title, abstract, content, num_read, num_like, num_
         print('----------------------')
     close_mysql(conn, cur)
 
+"""
+用途: 存储新闻条目的标签们
+"""
 def store_cats(NID,category):
     [conn, cur] = set_mysql('IFC')
     cats = ""
@@ -239,8 +283,9 @@ def store_cats(NID,category):
     print("saved relation " + cats)
     close_mysql(conn, cur)
 
-
-# 下载文件（通过代理）
+"""
+用途: 下载文件
+"""
 def download_file(url, file,flag):
     # create the object, assign it to a variable
     proxy = urllib.request.ProxyHandler(get_proxies(flag))
@@ -252,6 +297,9 @@ def download_file(url, file,flag):
     urllib.request.urlretrieve(url, file)
     print('图片下载: %s -> %s' % (url, file))
 
+"""
+用途: 下载文件2
+"""
 def download_file2(url, file_path):
     # local_filename = url.split('/')[-1]
     # NOTE the stream=True parameter
@@ -263,27 +311,25 @@ def download_file2(url, file_path):
                 #f.flush() commented by recommendation from J.F.Sebastian
     return True
 
-# 获取代理服务器
-def get_proxies(flag):
-    if(flag==0):
-        return {}
-    else:
-        return {
-            'http': 'http://Spi:59pKJPRXcYAUXHV4@118.89.233.15:3333',
-            'https': 'http://Spi:59pKJPRXcYAUXHV4@118.89.233.15:3333',
-        }
-
-
+"""
+用途: 提取出url中的各项参数
+"""
 def url_2_dict(url):
     query = urllib.parse.urlparse(url).query
     return dict([(k, v[0]) for k, v in urllib.parse.parse_qs(query).items()])
 
+"""
+用途: 标准化的输出方式
+"""
 def standard_print(prefix,attrs):
     output = prefix
     for attr in attrs:
         output = output+" | "+str(attr)
     print(output)
 
+"""
+用途: 把None变量进行转化
+"""
 def parse_none(attr,attr_type):
     if (attr is None):
         if(attr_type == 'str'):
@@ -294,7 +340,9 @@ def parse_none(attr,attr_type):
             attr = 0.0
     return attr
 
-#获取任务执行关系
+"""
+用途: 这几个batch_task先忽略
+"""
 def batch_task1(db,table):
     myname = socket.getfqdn(socket.gethostname())
     myaddr = socket.gethostbyname(myname)
@@ -425,6 +473,9 @@ def batch_task6(db,table_target,target,target_ID):
     print("该任务执行完毕: " + target)
     close_mysql(conn, cur)
 
+"""
+用途: 获取地理位置的经纬度数据
+"""
 def get_lng_lat(query, region):
     lng = ''
     lat = ''
@@ -438,8 +489,9 @@ def get_lng_lat(query, region):
         break
     return {'lng': lng, 'lat': lat}
 
-
-#重复多次执行同一个操作，直到操作成功，适合mysql操作
+"""
+用途: 重复多次执行同一个操作，直到操作成功，适合mysql操作
+"""
 def try_repeat(repeat_num,func,args):
     for try_i in range(repeat_num):
         try:
@@ -449,9 +501,10 @@ def try_repeat(repeat_num,func,args):
             time.sleep(10 + random.randint(2, 5))
             pass
 
-#从timestamp转化成datetime
-#举例:
-#print(timestamp_datetime(1420114800))
+"""
+用途: 从timestamp转化成datetime
+举例: print(timestamp_datetime(1420114800))
+"""
 def timestamp_datetime(ts):
     if isinstance(ts, (int, float, str)):
         try:
@@ -468,9 +521,10 @@ def timestamp_datetime(ts):
 
     return datetime.datetime.fromtimestamp(ts)
 
-#从datetime转化成timestamp
-#举例:
-#print(datetime_timestamp('2015-01-01 20:20:00', 's'))
+"""
+用途: 从datetime转化成timestamp
+举例: print(datetime_timestamp('2015-01-01 20:20:00', 's'))
+"""
 def datetime_timestamp(dt, type='ms'):
     if isinstance(dt, str):
         try:
@@ -500,7 +554,9 @@ def datetime_timestamp(dt, type='ms'):
         )
     return ts
 
-
+"""
+用途: 获取phantomJS无头浏览器
+"""
 def get_phantomJS(ip_proxy):
     user_agent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
     headers = {'User-Agent': user_agent}
@@ -528,9 +584,14 @@ def get_phantomJS(ip_proxy):
     browser.set_page_load_timeout(20)
     # 设置10秒脚本超时时间
     browser.set_script_timeout(20)
+    browser.maximize_window()
 
     return browser
 
+"""
+用途: 获取chrome浏览器
+参数：is_secret表示是否进入隐身模式，is_maximize表示是否最大化浏览器
+"""
 def get_chrome(ip_proxy,is_secret,is_maximize):
     chromedriver = "chromedriver.exe"
     chrome_options = webdriver.ChromeOptions()
@@ -559,12 +620,29 @@ def get_chrome(ip_proxy,is_secret,is_maximize):
     browser.set_script_timeout(60)  # 这两种设置都进行才有效
     return browser
 
+"""
+用途: 判断str1是否包含str2
+"""
 def str_contain(str1,str2):
     if (len(str1.split(str2)) > 1):
         return 1
     else:
         return 0
 
+"""
+用途: 判断str1是否包含str2
+"""
+def str_contain_list(str1,list):
+    is_contain = 0
+    for str2 in list:
+        is_contain = str_contain(str1,str2)
+        if(is_contain == 1):
+            break
+    return is_contain
+
+"""
+用途: 点击下一页
+"""
 def click_next_page(browser,xpath,try_num):
     click_ok = 0
     for try_i in range(try_num):
@@ -578,6 +656,9 @@ def click_next_page(browser,xpath,try_num):
             pass
     return click_ok
 
+"""
+用途: 从url获取json格式的数据输出
+"""
 def get_json_api(url):
     user_agent = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.116 Safari/537.36'
     headers = {'User-Agent': user_agent}
@@ -586,6 +667,9 @@ def get_json_api(url):
     json_response = json.loads(json_response)  # 这里要用loads，不能用load
     return json_response
 
+"""
+用途: 按数据单位进行数据调整
+"""
 def wash_num(num_str):
     num = ""
     if(num == ""):
@@ -598,6 +682,9 @@ def wash_num(num_str):
         num = num_str
     return num
 
+"""
+用途: 把list转化成str
+"""
 def wash_list(tag_list):
     tag_list = str(tag_list)
     tag_list = tag_list[1:-1]
@@ -607,7 +694,9 @@ def wash_list(tag_list):
     tag_list = re.sub(pattern, '', tag_list)
     return tag_list
 
-
+"""
+用途: 获取list中数值最大的值的index
+"""
 def get_max_index(list):
     max = 0
     max_index = 0
@@ -617,6 +706,9 @@ def get_max_index(list):
             max_index = i
     return max_index
 
+"""
+用途: 获取list中数值最小的值的index
+"""
 def get_min_index(list):
     min = 10000000
     min_index = 0
@@ -626,6 +718,9 @@ def get_min_index(list):
             min_index = i
     return min_index
 
+"""
+用途: 获取list的平均值
+"""
 def get_average(list):
     if(len(list)==0):
         print("数据为空")
@@ -638,6 +733,9 @@ def get_average(list):
     average = sum(list) / float(len(list))
     return average
 
+"""
+用途: 把运算分析好的结论存入RESULT表
+"""
 def store_result(request, riqi, content):
     [conn, cur] = set_mysql('IFC')
     cur.execute("INSERT INTO `result`(`request`, `riqi`, `content`) VALUES (%s,%s,%s)", (request, riqi, str(content)))
@@ -645,6 +743,9 @@ def store_result(request, riqi, content):
     standard_print("RESULT录入", [request,riqi,content])
     close_mysql(conn, cur)
 
+"""
+用途: 批量构造sql
+"""
 def sql_add(attr,op,value_array):
     sql = "("
     for i in range(len(value_array)):
@@ -655,12 +756,17 @@ def sql_add(attr,op,value_array):
     sql = sql + ")"
     return sql
 
-
+"""
+用途: 对日期进行位移操作
+"""
 def date_delta(num):
     riqi = datetime.datetime.now() + datetime.timedelta(days=num)  # 往前进num天
     riqi = riqi.strftime('%Y-%m-%d')
     return riqi
 
+"""
+用途: 从indicator表中提取出最新数值
+"""
 def get_indicator_lastest_value(ID_tong):
     [conn, cur] = set_mysql('IFC')
     cur.execute("SELECT time,value FROM `indicator_value` WHERE ID_tong = %s ORDER BY time DESC LIMIT 1", (ID_tong))
@@ -671,6 +777,9 @@ def get_indicator_lastest_value(ID_tong):
     close_mysql(conn, cur)
     return [riqi, value]
 
+"""
+用途: 从indicator表中提取出最新比率
+"""
 def get_indicator_lastest_rate(ID_tong):
     conclusion = ""
     [conn, cur] = set_mysql('IFC')
@@ -685,3 +794,58 @@ def get_indicator_lastest_rate(ID_tong):
     else:
         conclusion = "减少" + str(-value) + "%"
     return conclusion
+
+"""
+用途: 为任务分配采集账户
+"""
+def assign_scraper(table_target,column_ID,colume_scraper,scraper_list):
+    [conn,cur] = set_mysql('IFC')
+
+    query = "UPDATE %s SET %s='' WHERE 1" % (table_target, colume_scraper)
+    cur.execute(query, ())
+
+    query = "SELECT %s FROM %s WHERE %s=''" % (column_ID, table_target, colume_scraper)
+    num = cur.execute(query, ())
+    if(num == 0):
+        print("分配结束")
+        return
+    else:
+        result = cur.fetchall()
+        for r in result:
+            target_ID = r[0]
+            scraper = random.choice(scraper_list)
+            query = "UPDATE %s SET %s=%%s WHERE %s=%%s" % (table_target, colume_scraper, column_ID)
+            cur.execute(query, (scraper,target_ID))
+            cur.connection.commit()
+            standard_print("数据更新:", [scraper, target_ID])
+    close_mysql(conn, cur)
+
+"""
+用途: 获取batch
+"""
+def get_batch(batch_name):
+    # 获取待执行批次，保证每个batch用同一个batch_riqi
+    [conn, cur] = set_mysql("IFC")
+    riqi = datetime.datetime.now()
+    riqi = riqi.strftime('%Y-%m-%d')
+
+    num = cur.execute("SELECT catalog_tablename FROM `batch` WHERE "
+                "(last_batch_date = '0000-00-00' OR DATE_ADD(last_batch_date,INTERVAL batch_interval HOUR) <= %s) "
+                "AND batch_name=%s AND batch_date<>last_batch_date",(riqi,batch_name))
+
+    if (num == 0):
+        cur.execute("UPDATE `batch` SET `last_batch_date`=`batch_date` WHERE batch_name=%s", (batch_name))
+        cur.connection.commit()
+        standard_print("该批次执行完毕",[batch_name])
+        return [1, "", ""]
+
+    result = cur.fetchall()
+    for r in result:
+        catalog_tablename = r[0]
+
+    # 拿到该批次的执行情况后，开始更新批次表
+    cur.execute("UPDATE `batch` SET `batch_date`=%s WHERE batch_name=%s", (riqi,batch_name))
+    cur.connection.commit()
+    standard_print("开始执行批次",[batch_name,riqi,catalog_tablename])
+    close_mysql(conn, cur)
+    return [0, riqi,catalog_tablename]

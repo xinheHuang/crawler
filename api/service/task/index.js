@@ -35,7 +35,8 @@ class TaskService {
                 args.unshift('-u')
             }
             const spawnObj =child_process.spawn(type,args,{
-            	shell:true
+            	shell:true,
+            	detached: true
             })
             spawnObj.stdout.on('data', chunk => {
                 console.log('data',chunk.toString('utf8'))
@@ -62,7 +63,8 @@ class TaskService {
     static async stopTask(subtaskId) {
        const proc= TaskService.process.get(subtaskId);
        if (proc){
-           proc.kill();
+       	   console.log('killing')
+           process.kill(-proc.pid);
        }
     }
 }
