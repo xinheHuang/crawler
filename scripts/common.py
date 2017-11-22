@@ -849,3 +849,12 @@ def get_batch(batch_name):
     standard_print("开始执行批次",[batch_name,riqi,catalog_tablename])
     close_mysql(conn, cur)
     return [0, riqi,catalog_tablename]
+
+#num指的是第几个括号
+def wash_regex(str, regex, num):
+    response = ""
+    p = re.compile(regex)
+    flag = p.search(str)
+    if (flag is not None):
+        response = flag.group(num)
+    return response

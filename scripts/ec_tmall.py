@@ -1,6 +1,7 @@
 # -*-: encoding: utf-8 -*-
 
 from selenium import webdriver
+from bs4 import BeautifulSoup
 import time
 import re
 import requests
@@ -11,14 +12,14 @@ import sys
 from common import *
 import random
 
-def store_product(item_title, shop, price, sold_count, comment_count, batch_date, catalog_ID, product_ID):
+def store_product(title, shop, price, volume, comment, batch_date, catalog_ID, product_ID, product_url):
     [conn, cur] = set_mysql("IFC")
     cur.execute("INSERT INTO `ec_tmall_value_dynamic`(`batch_date`, `catalog_ID`, `product_ID`, `title`, "
-                "`price`, `volume`, `comment`, `shop`, `popularity_detail`, `rating_detail`, `rating_list_detail`) "
-                "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(batch_date,catalog_ID,product_ID,item_title,
-                price,sold_count,comment_count,shop,-1,-1,""))
+                "`price`, `volume`, `comment`, `shop`, `product_url`, `popularity_detail`, `rating_detail`, `rating_list_detail`) "
+                "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(batch_date,catalog_ID,product_ID,title,
+                price,volume,comment,shop,product_url,-1,-1,""))
     cur.connection.commit()
-    standard_print("数据录入", [item_title, shop, price, sold_count, comment_count, batch_date, catalog_ID, product_ID])
+    standard_print("数据录入", [title, shop, price, volume, comment, batch_date, catalog_ID, product_ID, product_url])
     close_mysql(conn, cur)
 
 def get_product(browser, item_url, catalog_ID, batch_date):
@@ -36,66 +37,54 @@ def get_product(browser, item_url, catalog_ID, batch_date):
         if (browser.title == "错误: 不能获取请求的 URL" or browser.title == "list.tmall.com" or browser.title == "理想生活上天猫"):
             return 0
 
-        products_obj = browser.find_elements_by_class_name("product  ")
-        for product_obj in products_obj:
-            product_a_obj = product_obj.find_elements_by_tag_name("a")[0]
-            product_url = product_a_obj.get_attribute('href')
+        pageSource = browser.page_source
+        soup = BeautifulSoup(pageSource, "html.parser")
+        result = soup.select("div.product-iWrap")
+        for item in result:
+            #print(item)
+            sub_result = item.select("div.productImg-wrap > a")
+            product_url = "https:"+remove_space(sub_result[0].get("href"))
             product_ID = str(url_2_dict(product_url)['id'])
-            product_content = product_obj.text
-            product_items = product_content.split('\n')
 
-            price = ""
-            sold_count = ""
-            comment_count = ""
-            item_title = ""
-            shop = ""
+            sub_result = item.select("p.productPrice > em")
+            price = remove_space(sub_result[0].get_text())
+            price = price.replace("¥","")
 
+            title = ""
             try:
-                if(product_items[0] == "<" and product_items[1] == ">"):
-                    item_title = product_items[3].strip()
-                else:
-                    item_title = product_items[1].strip()
-
-                item_title = item_title.replace("'", "\\'")
-
-                for item in product_items:
-                    p = re.compile('¥(.+)')
-                    flag = p.search(item)
-                    if (flag is not None):
-                        price = flag.group(1)
-
-                    p = re.compile('月成交 (.+)笔')
-                    flag = p.search(item)
-                    if (flag is not None):
-                        sold_count = flag.group(1)
-                        if sold_count.find(u"万") != -1:
-                            sold_count = sold_count.replace("万","")
-                            sold_count = float(sold_count)*10000
-
-                    p = re.compile('评价 (.+)')
-                    flag = p.search(item)
-                    if (flag is not None):
-                        comment_count = flag.group(1)
-                        if comment_count.find(u"万") != -1:
-                            comment_count = comment_count.replace("万", "")
-                            comment_count = float(comment_count) * 10000
-
-                    shop_list = ["店","专营","超市","旗舰","专卖","直营","阿里健康"]
-                    if(str_contain_list(item, shop_list)):
-                        shop = item
-
+                sub_result = item.select("p.productTitle")
+                title = remove_space(sub_result[0].get_text())
             except:
-                print("数据采集出错，产品数据为 " + str(product_items))
+                sub_result = item.select("div.productTitle")
+                title = remove_space(sub_result[0].get_text())
 
-            if(shop == ''):
-                print("缺失门店数据 " + str(product_items))
+            shop = ""
+            try:
+                sub_result = item.select("div.productShop > a.productShop-name")
+                shop = remove_space(sub_result[0].get_text())
+            except:
+                print("没有店铺数据")
 
-            if ((price == '') or (sold_count == '')):
+            volume = ""
+            comment = ""
+            sub_result = item.select("p.productStatus > span")
+            for sub_item in sub_result:
+                if(volume == ""):
+                    volume = wash_regex(remove_space(sub_item.get_text()), "(.*)月成交(.+)笔",2)
+                    if(volume != ""):
+                        volume = wash_num(volume)
+
+                if (comment == ""):
+                    comment = wash_regex(remove_space(sub_item.get_text()), "(.*)评价(.+)",2)
+                    if (comment != ""):
+                        comment = wash_num(comment)
+
+            if ((price == '') or (volume == '')):
                 print("该商品没有价格数据或没有销量数据，已跳过")
                 continue
 
             #try_repeat(5,store_product,[tem_title, shop, price, sold_count, comment_count, batch_date, catalog_ID, product_ID])
-            store_product(item_title, shop, price, sold_count, comment_count, batch_date, catalog_ID, product_ID)
+            store_product(title, shop, price, volume, comment, batch_date, catalog_ID, product_ID, product_url)
 
         # 点击下一页
         if (click_next_page(browser, "//a[@class='ui-page-s-next']", 3) == 0):
@@ -108,7 +97,7 @@ if __name__ == '__main__':
     batch_name = "天猫-全站扫描"
     scraper = sys.argv[1]
     print("本次使用的账户是:" + scraper)
-    #browser = get_chrome(wash_proxy()['http'], 1, 1)
+    #browser = get_chrome("", 1, 1)
     browser = get_phantomJS(wash_proxy()['http'])
     while 1:
         #第一步，取出batch对象
