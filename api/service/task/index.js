@@ -39,7 +39,6 @@ class TaskService {
             	detached: true
             })
             spawnObj.stdout.on('data', chunk => {
-                console.log('data',chunk.toString('utf8'))
                 chunk.toString('utf8').split(/[\r\n]+/).filter((d)=>d).forEach(msg=>{
                     channel.sendToQueue(queue, new Buffer(Message(taskId,subtaskId,Message.type.LOG, msg,filename)))
                 })
@@ -62,7 +61,7 @@ class TaskService {
 
     static async stopTask(subtaskId) {
        const proc= TaskService.process.get(subtaskId);
-       if (proc){
+       if (proc && proc.pid){
        	   console.log('killing')
            process.kill(-proc.pid);
        }
