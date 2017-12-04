@@ -32,7 +32,7 @@ class TaskService {
             console.log(type,filepath,extraArgs)
             const args= [filepath,...(extraArgs.split(' '))]
             if (type.indexOf('python')>=0){
-                args.unshift('-u')
+                args.unshift('-u','-W ignore')
             }
             const spawnObj =child_process.spawn(type,args,{
             	shell:true,
