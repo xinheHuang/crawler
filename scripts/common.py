@@ -630,7 +630,7 @@ def str_contain(str1,str2):
         return 0
 
 """
-用途: 判断str1是否包含str2
+用途: 判断list是否包含str2
 """
 def str_contain_list(str1,list):
     is_contain = 0
@@ -641,9 +641,21 @@ def str_contain_list(str1,list):
     return is_contain
 
 """
+用途: 判断str是否包含list里的内容
+"""
+def list_contain_str(str,list):
+    is_contain = 0
+    for item in list:
+        if(item in str):
+            is_contain = 1
+            break
+    return is_contain
+
+"""
 用途: 点击下一页
 """
 def click_next_page(browser,xpath,try_num):
+    print("翻页中")
     click_ok = 0
     for try_i in range(try_num):
         try:
@@ -829,28 +841,36 @@ def get_batch(batch_name):
     riqi = datetime.datetime.now()
     riqi = riqi.strftime('%Y-%m-%d')
 
-    num = cur.execute("SELECT catalog_tablename FROM `batch` WHERE "
+    num = cur.execute("SELECT catalog_tablename,num_todo,num_done FROM `batch` WHERE "
                 "(last_batch_date = '0000-00-00' OR DATE_ADD(last_batch_date,INTERVAL batch_interval HOUR) <= %s) "
                 "AND batch_name=%s AND batch_date<>last_batch_date",(riqi,batch_name))
 
     if (num == 0):
-        cur.execute("UPDATE `batch` SET `last_batch_date`=`batch_date` WHERE batch_name=%s", (batch_name))
+        cur.execute("UPDATE `batch` SET `last_batch_date`=`batch_date`, num_todo=0, num_done=0 WHERE batch_name=%s", (batch_name))
         cur.connection.commit()
         standard_print("该批次执行完毕",[batch_name])
-        return [1, "", ""]
+        return ["", ""]
 
     result = cur.fetchall()
     for r in result:
         catalog_tablename = r[0]
+        num_todo = r[1]
+        num_done = r[2]
 
     # 拿到该批次的执行情况后，开始更新批次表
-    cur.execute("UPDATE `batch` SET `batch_date`=%s WHERE batch_name=%s", (riqi,batch_name))
-    cur.connection.commit()
+    if(num_todo == 0 and num_done == 0):#说明是新开启的batch
+        cur.execute("UPDATE `batch` SET `batch_date`=%s WHERE batch_name=%s", (riqi, batch_name))
+        cur.connection.commit()
+    else:#说明是继续上次的batch
+        pass
     standard_print("开始执行批次",[batch_name,riqi,catalog_tablename])
     close_mysql(conn, cur)
-    return [0, riqi,catalog_tablename]
+    return [riqi,catalog_tablename]
 
-#num指的是第几个括号
+"""
+用途: 按照正则表达来提取字符串中的内容
+参数：num指的是第几个括号
+"""
 def wash_regex(str, regex, num):
     response = ""
     p = re.compile(regex)
@@ -858,3 +878,31 @@ def wash_regex(str, regex, num):
     if (flag is not None):
         response = flag.group(num)
     return response
+
+"""
+用途: 判断ip是否失效，如果失效的话就换新的ip
+"""
+def refresh_browser(browser,url,type,error_list):
+    while 1:
+        try:
+            browser.get(url)
+            if (browser.title in error_list):
+                browser.close()
+                time.sleep(5)
+                if(type=="chrome"):
+                    browser = get_chrome(wash_proxy()['http'], 1, 0)
+                elif(type=="phantomJS"):
+                    browser = get_phantomJS(wash_proxy()['http'])
+                continue
+            else:
+                break
+        except Exception as e:
+            print(e)
+            browser.close()
+            time.sleep(5)
+            if (type == "chrome"):
+                browser = get_chrome(wash_proxy()['http'], 1, 0)
+            elif (type == "phantomJS"):
+                browser = get_phantomJS(wash_proxy()['http'])
+            continue
+    return browser

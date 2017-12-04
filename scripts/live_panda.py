@@ -10,7 +10,14 @@ from common import *
 def get_panda(url,category,scrap_riqi):
     standard_print("开始抓取",[url,category,scrap_riqi])
     browser = get_phantomJS("")
-    browser.get(url)
+    error_num = 0
+    while error_num < 10:
+        try:
+            browser.get(url)
+            break
+        except:
+            error_num += 1
+            time.sleep(5)
     while 1:
         pageSource = browser.page_source
         soup = BeautifulSoup(pageSource, "html.parser")
@@ -21,8 +28,12 @@ def get_panda(url,category,scrap_riqi):
             sub_result = item.select("div.video-info > span.video-title")
             video_title = remove_space(sub_result[0].get_text())
 
-            sub_result = item.select("div.video-info > span.video-nickname")
-            author = remove_space(sub_result[0].get_text())
+            author = ""
+            try:
+                sub_result = item.select("div.video-info > span.video-nickname")
+                author = remove_space(sub_result[0].get_text())
+            except:
+                pass
 
             author_level = 0
             try:
@@ -42,6 +53,10 @@ def get_panda(url,category,scrap_riqi):
             sub_result = item.select("div.video-label-content > a.video-label-item")
             for sub_item in sub_result:
                 label = remove_space(sub_item.get_text())
+                if '\\u' in label:
+                    label = label.encode('utf-8').decode('unicode_escape')
+                if (label[0] == "u"):
+                    label = label[1:]
                 label_list.append(label)
             label_list = wash_list(label_list)
 
@@ -68,11 +83,13 @@ def get_panda(url,category,scrap_riqi):
     browser.close()
 
 #主函数
-scrap_riqi = datetime.datetime.now()
-scrap_riqi = scrap_riqi.strftime('%Y-%m-%d %H:%M:%S')
-get_panda("https://www.panda.tv/cate/jingji","热门竞技",scrap_riqi)
-get_panda("https://www.panda.tv/cate/yllm","娱乐联盟",scrap_riqi)
-get_panda("https://www.panda.tv/cate/shouyou","手游专区",scrap_riqi)
-get_panda("https://www.panda.tv/cate/zjdj","主机单机",scrap_riqi)
-get_panda("https://www.panda.tv/cate/wangyou","网游专区",scrap_riqi)
-get_panda("https://www.panda.tv/cate/recorded","大杂烩",scrap_riqi)
+while 1:
+    scrap_riqi = datetime.datetime.now()
+    scrap_riqi = scrap_riqi.strftime('%Y-%m-%d %H:%M:%S')
+    get_panda("https://www.panda.tv/cate/jingji","热门竞技",scrap_riqi)
+    get_panda("https://www.panda.tv/cate/yllm","娱乐联盟",scrap_riqi)
+    get_panda("https://www.panda.tv/cate/shouyou","手游专区",scrap_riqi)
+    get_panda("https://www.panda.tv/cate/zjdj","主机单机",scrap_riqi)
+    get_panda("https://www.panda.tv/cate/wangyou","网游专区",scrap_riqi)
+    get_panda("https://www.panda.tv/cate/recorded","大杂烩",scrap_riqi)
+    time.sleep(60*30)
