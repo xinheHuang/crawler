@@ -83,13 +83,11 @@ def get_panda(url,category,scrap_riqi):
     browser.close()
 
 #主函数
-while 1:
-    scrap_riqi = datetime.datetime.now()
-    scrap_riqi = scrap_riqi.strftime('%Y-%m-%d %H:%M:%S')
-    get_panda("https://www.panda.tv/cate/jingji","热门竞技",scrap_riqi)
-    get_panda("https://www.panda.tv/cate/yllm","娱乐联盟",scrap_riqi)
-    get_panda("https://www.panda.tv/cate/shouyou","手游专区",scrap_riqi)
-    get_panda("https://www.panda.tv/cate/zjdj","主机单机",scrap_riqi)
-    get_panda("https://www.panda.tv/cate/wangyou","网游专区",scrap_riqi)
-    get_panda("https://www.panda.tv/cate/recorded","大杂烩",scrap_riqi)
-    time.sleep(60*30)
+scrap_riqi = datetime.datetime.now()
+scrap_riqi = scrap_riqi.strftime('%Y-%m-%d %H:%M:%S')
+get_panda("https://www.panda.tv/cate/jingji","热门竞技",scrap_riqi)
+get_panda("https://www.panda.tv/cate/yllm","娱乐联盟",scrap_riqi)
+get_panda("https://www.panda.tv/cate/shouyou","手游专区",scrap_riqi)
+get_panda("https://www.panda.tv/cate/zjdj","主机单机",scrap_riqi)
+get_panda("https://www.panda.tv/cate/wangyou","网游专区",scrap_riqi)
+get_panda("https://www.panda.tv/cate/recorded","大杂烩",scrap_riqi)
