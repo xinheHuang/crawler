@@ -31,7 +31,7 @@ class TaskService {
             const filepath=basepath.substr(0,basepath.indexOf('bin'))+'scripts/'+filename;
             console.log(type,filepath,extraArgs)
             const args= [filepath,...(extraArgs.split(' '))]
-            if (type=='python'){
+            if (type.indexOf('python')>=0){
                 args.unshift('-u')
             }
             const spawnObj =child_process.spawn(type,args,{
