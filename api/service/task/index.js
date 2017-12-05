@@ -31,10 +31,16 @@ class TaskService {
             const filepath=basepath.substr(0,basepath.indexOf('bin'))+'scripts/'+filename;
             console.log(type,filepath,extraArgs)
             const args= [filepath,...(extraArgs.split(' '))]
+            let scriptType=type;
             if (type.indexOf('python')>=0){
                 args.unshift('-u','-W ignore')
+                if (process.platform === 'win32'){
+                    scriptType = 'python'
+                }  else{
+                    scriptType = 'python3'
+                }
             }
-            const spawnObj =child_process.spawn(type,args,{
+            const spawnObj =child_process.spawn(scriptType,args,{
             	shell:true,
             	detached: true
             })
