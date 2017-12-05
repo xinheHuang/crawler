@@ -13,6 +13,9 @@ const { queue, username, password, host, port } = mqConfig
 const open = require('amqplib')
     .connect(`amqp://${username}:${password}@${host}:${port}`)
 
+const isWin=process.platform === 'win32';
+
+const slash = isWin? '\\':'/'
 class TaskService {
 
     static async getChannel(){
@@ -28,13 +31,13 @@ class TaskService {
         const channel =await TaskService.getChannel();
         try {
             const basepath=path.dirname(require.main.filename);
-            const filepath=basepath.substr(0,basepath.indexOf('bin'))+'scripts/'+filename;
+            const filepath=basepath.substr(0,basepath.indexOf('bin'))+'scripts'+slash+filename;
             console.log(type,filepath,extraArgs)
             const args= [filepath,...(extraArgs.split(' '))]
             let scriptType=type;
             if (type.indexOf('python')>=0){
                 args.unshift('-u','-W ignore')
-                if (process.platform === 'win32'){
+                if (isWin){
                     scriptType = 'python'
                 }  else{
                     scriptType = 'python3'
