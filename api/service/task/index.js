@@ -31,8 +31,8 @@ class TaskService {
         const channel =await TaskService.getChannel();
         try {
             const basepath=path.dirname(require.main.filename);
-            const filepath=basepath.substr(0,basepath.indexOf('bin'))+'scripts'+slash+filename;
-            console.log(type,filepath,extraArgs)
+            const cwd=basepath.substr(0,basepath.indexOf('bin'))+'scripts'+slash;
+            const filepath=filename;
             const args= [filepath,...(extraArgs.split(' '))]
             let scriptType=type;
             if (type.indexOf('python')>=0){
@@ -43,9 +43,11 @@ class TaskService {
                     scriptType = 'python3'
                 }
             }
+            console.log(scriptType,args,cwd);
             const spawnObj =child_process.spawn(scriptType,args,{
             	shell:true,
-            	detached: true
+            	detached: true,
+                cwd
             })
             spawnObj.stdout.on('data', chunk => {
                 chunk.toString('utf8').split(/[\r\n]+/).filter((d)=>d).forEach(msg=>{
