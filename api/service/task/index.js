@@ -8,6 +8,8 @@ const scriptConfig= require ('../../../conf/scriptConfig')
 const mqConfig = require('../../../conf/mqConfig')
 const Message =require ('./Message')
 const path = require ('path')
+const kill = require('tree-kill');
+
 //amqp
 const { queue, username, password, host, port } = mqConfig
 const open = require('amqplib')
@@ -46,17 +48,19 @@ class TaskService {
             console.log(scriptType,args,cwd);
             const spawnObj =child_process.spawn(scriptType,args,{
             	shell:true,
-            	detached: true,
+            	// detached: true,
                 cwd
             })
             spawnObj.stdout.on('data', chunk => {
-                chunk.toString('utf8').split(/[\r\n]+/).filter((d)=>d).forEach(msg=>{
+                const r=chunk.toString()
+                r.split(/[\r\n]+/).filter((d)=>d).forEach(msg=>{
                     channel.sendToQueue(queue, new Buffer(Message(taskId,subtaskId,Message.type.LOG, msg,filename)))
                 })
             });
-            spawnObj.stderr.on('data', (data) => {
-                console.log('error',data.toString('utf8'))
-                const msg=Message(taskId,subtaskId,Message.type.ERROR, data.toString('utf8'),filename);
+            spawnObj.stderr.on('data', (chunk) => {
+                const error =chunk.toString();
+                console.log('error',error)
+                const msg=Message(taskId,subtaskId,Message.type.ERROR,error,filename);
                 channel.sendToQueue(queue, new Buffer(msg))
             });
             spawnObj.on('exit', (code) => {
@@ -73,8 +77,9 @@ class TaskService {
     static async stopTask(subtaskId) {
        const proc= TaskService.process.get(subtaskId);
        if (proc && proc.pid){
-       	   console.log('killing')
-           process.kill(-proc.pid);
+       	   console.log('killing '+proc.pid)
+           kill(proc.pid)
+           // process.kill(-proc.pid);
        }
     }
 }
